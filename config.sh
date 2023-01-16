@@ -1,3 +1,4 @@
+# modified by peacok		2023-01-08  add USE_USTREAMER=1
 export GIT_EXE="git"
 export MIRROR_GITHUB="https://github.com"
 export MIRROR_GITHUB_API="https://api.github.com"
@@ -9,7 +10,7 @@ export PIKVMREPO_PKG="/"
 
 # export KVMD_VERSION=""
 export CUSTOM_KVMD_VERSION=1 # If you want install lastest version of kvmd set to 0
-export KVMD_VERSION="3.142" # LAST KVMD VERSION SUPPORTS PYTHON3.9 
+export KVMD_VERSION="3.191" # LAST KVMD VERSION SUPPORTS PYTHON3.9 
 export PIKVM_KEY="912C773ABBD1B584"
 export USE_GPIO=0
 export DEBIAN_PYTHON=1
@@ -18,8 +19,11 @@ export PKGINFO="${KVMDCACHE}/packages.txt"
 export DOWNLOAD_FUNC="./libs/download_wget.sh"
 export GIT_CLONE_WITH_DEPTH="--depth=1"
 export USE_JANUS=0
+export USE_USTREAMER=1
 export USE_CSI=0
 #export HID_MODE="" # Allow otg, ch9329, arduino, bluetooth mode
-export USE_MSD=0
+export USE_MSD=1
 export USE_UDEV=0
 #export PLATFORM_PATCH # Apply patch for board platform
+
+#INFO USE_USTREAMER=1 uses the Distribution ones, no compile, it works from Distribution allready

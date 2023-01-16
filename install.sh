@@ -1,4 +1,5 @@
 #!/bin/bash
+# modified by peacok		2023-01-08
 # modified by xe5700 		2021-11-04	xe5700@outlook.com
 # modified by NewbieOrange	2021-11-04
 # created by @srepac   08/09/2021   srepac@kvmnerds.com
@@ -94,9 +95,16 @@ colorama cryptography dateutil dbus hidapi idna libgpiod marshmallow more-iterto
 packaging passlib pillow ply psutil pycparser pyelftools pyghmi pygments pyparsing requests semantic-version 
 setproctitle setuptools six spidev systemd tabulate urllib3 wrapt xlib yaml yarl" )
   do
-    echo "apt-get install python3-$i -y"
-    apt-get install python3-$i -y > /dev/null
+    apttmp=$apttmp" python3-$i"
   done
+  echo
+  echo "apt install -y $apttmp"
+  apt install -y $apttmp
+
+#  do
+#    echo "apt-get install python3-$i -y"
+#    apt-get install python3-$i -y > /dev/null
+#  done
   # U
   pip3 install dbus_next==0.2.3 zstandard==0.18.0 pyserial==3.5 aiohttp==3.8.3
 } # end install python-packages
@@ -210,14 +218,14 @@ install-kvmd-pkgs() {
   date > $INSTLOG 
 
 # uncompress platform package first
-  for i in $( ls "${KVMDCACHE}/${platform}-*.tar.xz" )
+  for i in $( ls ${KVMDCACHE}/${platform}-*.tar.xz )
   do
     echo "-> Extracting package $i into /" >> "$INSTLOG" 
     tar -vxf "$i"
   done
 
 # then uncompress, kvmd-{version}, kvmd-webterm, and janus packages 
-  for i in $( ls "${KVMDCACHE}/*.tar.xz" | egrep 'kvmd-[0-9]' )
+  for i in $( ls ${KVMDCACHE}/*.tar.xz | egrep 'kvmd-[0-9]' )
   do
     echo "-> Extracting package $i into /" >> "$INSTLOG"
     if [ $CUSTOM_KVMD_VERSION -eq 1 ]; then
@@ -244,8 +252,20 @@ install-kvmd-pkgs() {
   do
     echo "-> Extracting package $i into /" >> "$INSTLOG"
     tar xfJ "$i"
+    #apply from 7Jan2023 
+    sync
+    cp "${APP_PATH}"/usr/bin/janus*   /usr/bin
+    cp -a "${APP_PATH}"/usr/include/janus  /usr/include
+    cp -a "${APP_PATH}"/usr/lib/janus  /usr/lib
+    #*****
   done
   cd "${APP_PATH}"
+  #apply from 7Jan2023 , they wars allways missed, no kvmd-webterm user/service 
+  #*****
+  cp usr/lib/sysusers.d/kvmd-webterm.conf  /usr/lib/sysusers.d
+  sed -i 's/Pi-KVM/PiKVM/g' /usr/lib/sysusers.d/kvmd-webterm.conf
+  cp usr/lib/systemd/system/kvmd-webterm.service  /lib/systemd/system
+  #*****
 } # end install-kvmd-pkgs
 
 fix-udevrules() { 
@@ -257,8 +277,8 @@ fix-udevrules() {
 
 enable-kvmd-svcs() { 
   # enable KVMD services but don't start them
-  echo "-> Enabling kvmd-nginx kvmd-webterm kvmd-otg and kvmd services, but do not start them."
-  systemctl enable kvmd-nginx kvmd-webterm kvmd-otg kvmd 
+  echo "-> Enabling kvmd-nginx kvmd-webterm kvmd-otg kvmd-fix and kvmd services, but do not start them."
+  systemctl enable kvmd-nginx kvmd-webterm kvmd-otg kvmd kvmd kvmd-fix
 
   # in case going from CSI to USB, then disable kvmd-tc358743 service (in case it's enabled)
   if [[ $USE_CSI -eq 0 ]]; then
@@ -271,13 +291,10 @@ enable-kvmd-svcs() {
 build-ustreamer() {
   printf "\n\n-> Building ustreamer\n\n"
   # Install packages needed for building ustreamer source
-  echo "apt install -y libevent-dev libjpeg-dev libbsd-dev libgpiod-dev libsystemd-dev janus-dev janus"
+  echo "apt install -y libevent-dev libjpeg-dev libbsd-dev libgpiod-dev libsystemd-dev"
   apt install -y libevent-dev libjpeg-dev libbsd-dev libsystemd-dev
   if [[ $USE_GPIO -eq 1 ]]; then
     apt install -y libgpiod-dev
-  fi
-  if [[ $USE_JANUS -eq 1 ]]; then
-    apt install -y janus-dev janus
   fi
   # Download ustreamer source and build it
   cd /tmp
@@ -301,9 +318,16 @@ install-dependencies() {
   apt-get update > /dev/null
   for i in $( echo "nginx python3 bc expect v4l-utils gpiod dialog git python3-pip tesseract-ocr tesseract-ocr-chi-sim jq" )
   do
-    echo "apt-get install -y $i"
-    apt-get install -y $i > /dev/null
+    apttmp=$apttmp" $i"
   done
+  echo "apt install -y $apttmp"
+  apt install -y $apttmp
+  install-python-packages
+
+#  do
+#    echo "apt-get install -y $i"
+#    apt-get install -y $i > /dev/null
+#  done
 
   install-python-packages
 
@@ -333,14 +357,22 @@ install-dependencies() {
     chmod +x /usr/bin/ttyd
   fi
 
+  if [[ $USE_JANUS -eq 1 ]]; then
+  echo "-> Install janus janus-dev"
+    apt install -y janus-dev janus
+  fi
+
   echo "-> Install ustreamer"
   if [ ! -e /usr/bin/ustreamer ]; then
-    # apt install ustreamer
-    cd /tmp/
-	  apt-get install -y libevent-2.1-7 libevent-core-2.1-7 libevent-pthreads-2.1-7 build-essential
-    # ### required dependent packages for ustreamer ###
-    build-ustreamer
-    cd ${APP_PATH}
+     if [[ $USE_USTREAMER -eq 1 ]]; then
+       apt -y install ustreamer
+     else  
+       cd /tmp/
+       apt-get install -y libevent-2.1-7 libevent-core-2.1-7 libevent-pthreads-2.1-7 build-essential
+        # ### required dependent packages for ustreamer ###
+        build-ustreamer
+        cd ${APP_PATH}
+     fi
   fi
 } # end install-dependencies
 
@@ -436,6 +468,9 @@ fix-kvmd-for-tvbox-armbian(){
       PATCH_VER="v3.84-v3.134"
     fi
     if [ ! -z "$PATCH_VER" ]; then
+      echo "-> disable_gpio in ${APP_PATH}/patches/disable_gpio/$PATCH_VER/*.patch"
+      echo $GIT_EXE
+#      exit 0
       $GIT_EXE apply ${APP_PATH}/patches/disable_gpio/$PATCH_VER/*.patch
     fi
   fi
@@ -456,7 +491,7 @@ fix-kvmd-for-tvbox-armbian(){
     *)
      echo "Try again.";;
   esac
-}
+} #end fix-kvmd-for-tvbox-armbian
 
 fix-webterm() {
   echo
@@ -499,6 +534,7 @@ ls -l /dev/gpio*
 ls -l /dev/kvmd-video
 rm /dev/kvmd-video
 # Need to use video0 for orange pi (if you don't, the video capture won't work)
+# My OrangePI Zero 2 (h616) has video1
 ln -s video1 /dev/kvmd-video
 SCRIPTEND
 
@@ -541,7 +577,7 @@ start-kvmd-svcs() {
   # 1. nginx is the webserver
   # 2. kvmd-otg is for OTG devices (keyboard/mouse, etc..)
   # 3. kvmd is the main daemon
-  systemctl restart kvmd-nginx kvmd-otg kvmd-webterm kvmd 
+  systemctl restart kvmd-nginx kvmd-otg kvmd-webterm kvmd kvmd-fix
   # systemctl status kvmd-nginx kvmd-otg kvmd-webterm kvmd 
 } # end start-kvmd-svcs
 
@@ -585,12 +621,12 @@ if [[ $( grep kvmd /etc/passwd | wc -l ) -eq 0 || "$1" == "-f" ]]; then
   armbian-packages
   systemctl disable --now janus
   fix-kvmd-for-tvbox-armbian
-  
+    
   # Fix paste-as-keys if running python 3.7
   if [[ $( python3 -V | awk '{print $2}' | cut -d'.' -f1,2 ) == "3.7" ]]; then
     sed -i -e 's/reversed//g' $PYTHONDIR/kvmd/keyboard/printer.py
   fi
-
+  sync
   printf "\n\nReboot is required to create kvmd users and groups.\nPlease re-run this script after reboot to complete the install.\n"
   # Ask user to press CTRL+C before reboot or ENTER to proceed with reboot
   press-enter
@@ -610,6 +646,6 @@ else
   printf "\nCheck kvmd devices\n\n" 
   ls -l /dev/kvmd*
   printf "\nYou should see devices for keyboard, mouse, and video.\n"
-
-  printf "\nPoint a browser to https://$(hostname)\nIf it doesn't work, then reboot one last time.\nPlease make sure kvmd services are running after reboot.\n"
+  sync
+  printf "\nPoint a browser to https://$(hostname)   ,   or mybee https://$(hostname).local\n     Login: admin/admin\n\nIf it doesn't work, then reboot one last time.\nPlease make sure kvmd services are running after reboot.\n"
 fi
