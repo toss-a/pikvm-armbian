@@ -34,7 +34,9 @@
 - 开发版OTG口为单独的Type-C口或Micro USB 那么 你只需要准备一根数据线即可
 - 开发版OTG口为开发版供电 你需要手动制作一分二数据线 如下图
 
+```
 ![1to2](https://raw.githubusercontent.com/toss-a/pikvm-armbian/master/1to2.png)
+```
 
 - 开发版OTG口为USB 修改dtb后实现的  你需要准备USB-A 转 USB-A 线缆
 
