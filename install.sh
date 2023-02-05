@@ -640,6 +640,9 @@ else
   set-ownership 
   create-kvmdfix
   check-kvmd-works
+
+  chgrp kvmd /etc/kvmd/totp.secret
+  chmod 640 /etc/kvmd/totp.secret
   enable-kvmd-svcs
   start-kvmd-svcs
 
