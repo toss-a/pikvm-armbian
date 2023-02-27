@@ -92,7 +92,7 @@ CSIOVERRIDE
 install-python-packages() { 
   for i in $( echo "aiofiles appdirs asn1crypto async-timeout bottle cffi chardet click 
 colorama cryptography dateutil dbus hidapi idna libgpiod marshmallow more-itertools multidict netifaces 
-packaging passlib pillow ply psutil pycparser pyelftools pyghmi pygments pyparsing requests semantic-version 
+packaging passlib pillow ply psutil pycparser pyelftools pyghmi pygments pyotp pyparsing requests semantic-version 
 setproctitle setuptools six spidev systemd tabulate urllib3 wrapt xlib yaml yarl" )
   do
     apttmp=$apttmp" python3-$i"
@@ -640,6 +640,8 @@ else
   set-ownership 
   create-kvmdfix
   check-kvmd-works
+  chgrp kvmd /etc/kvmd/totp.secret
+  chmod 640 /etc/kvmd/totp.secret
   enable-kvmd-svcs
   start-kvmd-svcs
 
