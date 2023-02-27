@@ -548,6 +548,8 @@ set-ownership() {
   chown kvmd-ipmi:kvmd-ipmi ipmipasswd
   chown kvmd-vnc:kvmd-vnc vncpasswd
   chown kvmd-webterm /home/kvmd-webterm
+  chgrp kvmd totp.secret
+  chmod 640 totp.secret
 
   # add kvmd user to video group (this is required in order to use CSI bridge with OMX and h264 support)
   usermod -a -G video kvmd
@@ -640,8 +642,6 @@ else
   set-ownership 
   create-kvmdfix
   check-kvmd-works
-  chgrp kvmd /etc/kvmd/totp.secret
-  chmod 640 /etc/kvmd/totp.secret
   enable-kvmd-svcs
   start-kvmd-svcs
 
