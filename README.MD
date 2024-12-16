@@ -7,7 +7,7 @@ This project support non Raspberry Pi device to running pikvm on armbian
 # Chinese installation steps
 
 Chinese installation steps [https://github.com/toss-a/pikvm-armbian/blob/master/README-zh-CN.MD]
-
+Docker installation method [https://github.com/toss-a/pikvm-armbian/blob/master/README-Docker-zh-CN.MD]
 # Install
 KVMD Install for armbian
 It support Allwinner, Amlogic and Rockchip based tv box, tested on phicomm n1, mxq pro 4k, tqc a01. 
